@@ -35,6 +35,7 @@ COPY --from=sde-export /data/sqlite-shrunk.sqlite sqlite-shrunk.sqlite
 ADD archive-backend.tar /app/backend
 
 RUN sqlite3 /wl-dev.sqlite < sql/sqlite.sql
+RUN sqlite3 /wl-dev.sqlite < sql/enik.sql
 
 ARG DATABASE_ENGINE=sqlite
 ARG DATABASE_URL=${DATABASE_ENGINE}:/wl-dev.sqlite
@@ -45,10 +46,12 @@ RUN cargo build --release --no-default-features --features=${DATABASE_ENGINE}
 FROM alpine
 COPY --from=sde-export /data/sqlite-shrunk.sqlite /tdf_wl/sqlite-shrunk.sqlite
 COPY --from=builder /app/backend/target/release/tdf_wl /tdf_wl/bin
+COPY --from=builder /wl-dev.sqlite /tdf_wl/waitlist.sqlite
 
 WORKDIR /tdf_wl
 COPY data data
 ADD Rocket.toml .
+ADD config.toml .
 
 ENTRYPOINT /tdf_wl/bin
 EXPOSE 5000
