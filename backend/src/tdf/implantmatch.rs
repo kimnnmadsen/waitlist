@@ -1,9 +1,9 @@
 use eve_data_core::TypeID;
 
-fn detect_base_set(implants: &[TypeID]) -> Option<&'static str> {
+pub fn detect_base_set(implants: &[TypeID]) -> Option<&'static str> {
     let set_implants = [
         (
-            "AMULET1-10",
+            "AMULET",
             [
                 type_id!("High-grade Amulet Alpha"),
                 type_id!("High-grade Amulet Beta"),
@@ -14,7 +14,7 @@ fn detect_base_set(implants: &[TypeID]) -> Option<&'static str> {
             ],
         ),
         (
-            "HYBRID1-10",
+            "HYBRID",
             [
                 type_id!("High-grade Amulet Alpha"),
                 type_id!("High-grade Amulet Beta"),
@@ -25,7 +25,7 @@ fn detect_base_set(implants: &[TypeID]) -> Option<&'static str> {
             ],
         ),
         (
-            "WARPSPEED1-10",
+            "WARPSPEED",
             [
                 type_id!("High-grade Ascendancy Alpha"),
                 type_id!("High-grade Ascendancy Beta"),
@@ -36,7 +36,7 @@ fn detect_base_set(implants: &[TypeID]) -> Option<&'static str> {
             ],
         ),
         (
-            "SAVIOR1-10",
+            "SAVIOR",
             [
                 type_id!("High-grade Savior Alpha"),
                 type_id!("High-grade Savior Beta"),
@@ -47,7 +47,7 @@ fn detect_base_set(implants: &[TypeID]) -> Option<&'static str> {
             ],
         ),
         (
-            "WARPSPEED1-10",
+            "WARPSPEED",
             [
                 type_id!("High-grade Ascendancy Alpha"),
                 type_id!("High-grade Ascendancy Beta"),
@@ -105,7 +105,7 @@ fn detect_slot9(hull: TypeID, implants: &[TypeID]) -> Option<()> {
     }
 }
 
-fn detect_slot10(hull: TypeID, implants: &[TypeID]) -> Option<()> {
+pub fn detect_slot10(hull: TypeID, implants: &[TypeID]) -> Option<()> {
     if hull == type_id!("Nightmare") || hull == type_id!("Paladin") {
         if implants.contains(&type_id!("Pashan's Turret Handling Mindlink"))
             || implants.contains(&type_id!("% LE-1006"))
@@ -120,7 +120,9 @@ fn detect_slot10(hull: TypeID, implants: &[TypeID]) -> Option<()> {
         } else {
             None
         }
-    } else if hull == type_id!("Nestor")
+    // disabled, logi's don't need slot 10 for an implant tag for now
+    }
+    /*else if hull == type_id!("Nestor")
         || hull == type_id!("Oneiros")
         || hull == type_id!("Guardian")
     {
@@ -129,9 +131,10 @@ fn detect_slot10(hull: TypeID, implants: &[TypeID]) -> Option<()> {
         } else {
             None
         }
-    } else {
-        // What ship is that?!
-        None
+    } */
+    else {
+        // What ship is that?! Probably doesn't need slot 10?
+        Some(())
     }
 }
 
@@ -140,7 +143,5 @@ pub fn detect_set(hull: TypeID, implants: &[TypeID]) -> Option<&'static str> {
     detect_slot7(hull, implants)?;
     detect_slot8(hull, implants)?;
     detect_slot9(hull, implants)?;
-    detect_slot10(hull, implants)?;
-
     Some(base_set)
 }

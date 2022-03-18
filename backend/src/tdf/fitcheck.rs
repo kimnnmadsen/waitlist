@@ -64,12 +64,12 @@ impl<'a> FitChecker<'a> {
         checker.check_module_skills()?;
         checker.check_fit();
         checker.check_fit_reqs();
-        checker.check_fit_implants()?;
         checker.check_time_in_fleet();
         checker.check_logi_implants();
         checker.set_category();
-        checker.add_implant_tag();
         checker.add_snowflake_tags();
+        checker.check_fit_implants();
+        checker.add_implant_tag();
         checker.merge_tags();
 
         checker.finish()
@@ -239,44 +239,60 @@ impl<'a> FitChecker<'a> {
         }
     }
 
-    fn check_fit_implants(&mut self) -> Result<(), FitError> {
+    fn check_fit_implants(&mut self) {
         if let Some(doctrine_fit) = self.doctrine_fit {
-            let mut implants_ok = true;
-            if doctrine_fit.name.contains("HYBRID") || doctrine_fit.name.contains("AMULET") {
-                let implants = [
-                    type_id!("High-grade Amulet Alpha"),
-                    type_id!("High-grade Amulet Beta"),
-                    type_id!("High-grade Amulet Delta"),
-                    type_id!("High-grade Amulet Epsilon"),
-                    type_id!("High-grade Amulet Gamma"),
-                ];
-                for implant in implants {
-                    if !self.pilot.implants.contains(&implant) {
-                        implants_ok = false;
+            if let Some(set_tag) = implantmatch::detect_base_set(self.pilot.implants) {
+                if set_tag != "SAVIOR" {
+                    let mut implants_nok = "";
+                    if doctrine_fit.name.contains("ASCENDANCY") && set_tag != "WARPSPEED" {
+                        implants_nok = "Ascendancy";
+                    } else if doctrine_fit.name.contains("HYBRID") && set_tag != "AMULET" {
+                        let implants = [
+                            type_id!("High-grade Amulet Alpha"),
+                            type_id!("High-grade Amulet Beta"),
+                            type_id!("High-grade Amulet Delta"),
+                            type_id!("High-grade Amulet Epsilon"),
+                            type_id!("High-grade Amulet Gamma"),
+                        ];
+                        for implant in implants {
+                            if !self.pilot.implants.contains(&implant) {
+                                implants_nok = "Hybrid";
+                            }
+                        }
+                    } else if doctrine_fit.name.contains("AMULET") && set_tag != "AMULET" {
+                        implants_nok = "Amulet";
+                    }
+                    if implants_nok != "" {
+                        self.errors
+                            .push(format!("Missing implants to fly {} fit", implants_nok));
                     }
                 }
             }
-            if doctrine_fit.name.contains("AMULET")
-                && !self
-                    .pilot
-                    .implants
-                    .contains(&type_id!("High-grade Amulet Omega"))
-            {
-                implants_ok = false;
-            }
-
-            if !implants_ok {
-                self.approved = false;
-                self.tags.insert("NO-IMPLANTS");
-            }
         }
-
-        Ok(())
     }
 
     fn add_implant_tag(&mut self) {
-        if let Some(set_tag) = implantmatch::detect_set(self.fit.hull, self.pilot.implants) {
-            self.tags.insert(set_tag);
+        if let Some(doctrine_fit) = self.doctrine_fit {
+            // Implant badge will show if you have 1-9
+            if let Some(set_tag) = implantmatch::detect_set(self.fit.hull, self.pilot.implants) {
+                // all non tagged fits are ascendancy (warpspeed)
+                // logi cruisers are an expection, they can fly whatever they want
+                if set_tag == "SAVIOR" {
+                    self.tags.insert("SAVIOR");
+                } else if doctrine_fit.name.contains(set_tag)
+                    || (set_tag == "WARPSPEED"
+                        && !(doctrine_fit.name.contains("AMULET")
+                            || doctrine_fit.name.contains("HYBRID")))
+                    || self.fit.hull == type_id!("Oneiros")
+                    || self.fit.hull == type_id!("Guardian")
+                {
+                    self.tags.insert(set_tag);
+                    // give warning if you have all but slot 10 or wrong slot for that ship
+                    if implantmatch::detect_slot10(self.fit.hull, self.pilot.implants).is_none() {
+                        self.tags.insert("NO-SLOT10");
+                    }
+                }
+            }
         }
     }
 
@@ -296,23 +312,52 @@ impl<'a> FitChecker<'a> {
     fn add_snowflake_tags(&mut self) {
         if self.pilot.access_keys.contains("waitlist-tag:HQ-FC") {
             self.tags.insert("HQ-FC");
+        } else if self.pilot.access_keys.contains("waitlist-tag:TRAINEE") {
+            self.tags.insert("TRAINEE");
         } else if self.pilot.access_keys.contains("waitlist-tag:LOGI")
             && self.fit.hull == type_id!("Nestor")
         {
             self.tags.insert("LOGI");
+        } else if self.pilot.access_keys.contains("waitlist-tag:WEB")
+            && self.fit.hull == type_id!("Vindicator")
+        {
+            self.tags.insert("WEB-SPECIALIST");
+        } else if self.pilot.access_keys.contains("waitlist-tag:BASTION")
+            && (self.fit.hull == type_id!("Paladin") || self.fit.hull == type_id!("Kronos"))
+        {
+            self.tags.insert("BASTION-SPECIALIST");
         }
     }
 
     fn merge_tags(&mut self) {
-        if self.tags.contains("ELITE-FIT") {
+        if self.tags.contains("ELITE-FIT")
+            && ["WARPSPEED", "HYBRID", "AMULET"]
+                .iter()
+                .any(|e| self.tags.contains(e))
+        {
             if self.tags.contains("ELITE-SKILLS") {
                 self.tags.remove("ELITE-FIT");
                 self.tags.remove("ELITE-SKILLS");
-                self.tags.insert("ELITE");
+                if self.tags.contains("BASTION-SPECIALIST") {
+                    self.tags.remove("BASTION-SPECIALIST");
+                    self.tags.insert("BASTION");
+                } else if self.tags.contains("WEB-SPECIALIST") {
+                    self.tags.remove("WEB-SPECIALIST");
+                    self.tags.insert("WEB");
+                } else {
+                    self.tags.insert("ELITE");
+                }
             } else if self.tags.contains("GOLD-SKILLS") {
                 self.tags.remove("ELITE-FIT");
                 self.tags.remove("GOLD-SKILLS");
                 self.tags.insert("ELITE-GOLD");
+                if self.tags.contains("BASTION-SPECIALIST") {
+                    self.tags.remove("BASTION-SPECIALIST");
+                    self.tags.insert("BASTION");
+                } else if self.tags.contains("WEB-SPECIALIST") {
+                    self.tags.remove("WEB-SPECIALIST");
+                    self.tags.insert("WEB");
+                }
             }
         }
     }

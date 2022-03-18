@@ -13,6 +13,7 @@ const ModalDom = styled.div`
   right: 0;
   padding: 20px;
   z-index: 50;
+  min-width: 100%;
 `;
 ModalDom.Background = styled.div`
   position: absolute;
@@ -27,7 +28,6 @@ ModalDom.Content = styled.div`
   margin: auto;
   max-height: 100%;
   overflow-y: auto;
-
   > ${Box} {
     min-width: 300px;
     min-height: 200px;

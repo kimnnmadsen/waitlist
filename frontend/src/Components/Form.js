@@ -129,7 +129,17 @@ export const Buttons = styled.div`
   flex-wrap: wrap;
 
   > * {
-    margin-bottom: 0.5em;
+    margin-bottom: ${(props) => (props.marginb ? props.marginb : "0.5em")};
     margin-right: 0.5em;
+  }
+  } 
+`;
+
+export const CenteredButtons = styled.div`
+  display: flex;
+  justify-content: center;
+  > * {
+    width: ${(props) => (props.size ? props.size : "inherit")};
+    margin: 0.2em;
   }
 `;

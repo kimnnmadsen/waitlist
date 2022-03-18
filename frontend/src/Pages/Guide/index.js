@@ -6,8 +6,7 @@ import { ToastContext, AuthContext } from "../../contexts";
 
 import { errorToaster } from "../../api";
 import { Markdown } from "../../Components/Markdown";
-import { Row, Col } from "react-awesome-styled-grid";
-import { Card } from "../../Components/Card";
+import { Card, CardArray, CardMargin } from "../../Components/Card";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import {
   faAnchor,
@@ -88,7 +87,7 @@ export function Guide() {
 
 function GuideCard({ icon, slug, name, children }) {
   return (
-    <Col xs={4} sm={4} lg={3}>
+    <CardMargin>
       <NavLink style={{ textDecoration: "inherit", color: "inherit" }} exact to={`${slug}`}>
         <Card
           title={
@@ -100,7 +99,7 @@ function GuideCard({ icon, slug, name, children }) {
           <p>{children}</p>
         </Card>
       </NavLink>
-    </Col>
+    </CardMargin>
   );
 }
 
@@ -109,7 +108,7 @@ export function GuideIndex() {
   return (
     <>
       <PageTitle>Guides</PageTitle>
-      <Row>
+      <CardArray>
         <GuideCard slug="/guide/newbro" name="New-Bro guide" icon={faGraduationCap}>
           Haven&apos;t flown with TDF yet? Read this first!
         </GuideCard>
@@ -117,14 +116,14 @@ export function GuideIndex() {
           What to do before joining your first fleet, how to join your first fleet, and how not to
           die during your first fleet.
         </GuideCard>
-        <GuideCard slug="/guide/dps" name="Anchoring" icon={faAnchor}>
+        <GuideCard slug="/guide/anchoring" name="Anchoring" icon={faAnchor}>
           Where should you park your ship?
         </GuideCard>
         <GuideCard slug="/guide/roles" name="Roles" icon={faUsers}>
           What is my purpose? Learn the roles here.
         </GuideCard>
         <GuideCard slug="/guide/upgrade" name="Upgrading" icon={faLevelUpAlt}>
-          TDF expects you to upgrade. What&apos;s the recommended way to do it?
+          TDF expects you to upgrade. What is the policy and the recommended way to do it?
         </GuideCard>
         {authContext && (
           <GuideCard slug="/skills/plans" name="Skill Plans" icon={faBook}>
@@ -151,7 +150,7 @@ export function GuideIndex() {
         <GuideCard slug="/guide/fctraining" name="Becoming an FC" icon={faUserGraduate}>
           Do you want to join the TDF team?
         </GuideCard>
-      </Row>
+      </CardArray>
     </>
   );
 }

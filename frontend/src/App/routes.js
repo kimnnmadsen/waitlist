@@ -8,6 +8,8 @@ import { Waitlist } from "../Pages/Waitlist";
 import { Xup } from "../Pages/Xup";
 import { Pilot } from "../Pages/Pilot";
 import { Home } from "../Pages/Home";
+import { Legal } from "../Pages/Legal";
+import { Fits } from "../Pages/Fits";
 import { Guide, GuideIndex } from "../Pages/Guide";
 
 import { FCRoutes } from "../Pages/FC";
@@ -21,6 +23,9 @@ export function Routes() {
       <Route exact path="/">
         <Home />
       </Route>
+      <Route exact path="/legal">
+        <Legal />
+      </Route>
       <Route exact path="/guide">
         <GuideIndex />
       </Route>
@@ -32,6 +37,9 @@ export function Routes() {
       </Route>
       <Route exact path="/isk-h">
         <ISKh />
+      </Route>
+      <Route exact path="/fits">
+        <Fits />
       </Route>
       {authContext && (
         <>
